@@ -45,43 +45,47 @@ class Handler extends ExceptionHandler
    */
   public function register()
   {
-    
-    $this->reportable(function (ValidationException $e, $request) {
+
+    $this->renderable(function (ValidationException $e, $request) {
       return $this->convertValidationExceptionToResponse($e, $request);
     });
 
-    $this->reportable(function (ModelNotFoundException $e) {
+    $this->renderable(function (ModelNotFoundException $e) {
       $modelo = strtolower(class_basename($e->getModel()));
       return $this->errorResponse("No existe ninguna instancia de {$modelo} con el id especificado", 404);
     });
 
-    $this->reportable(function (AuthenticationException $e, $request) {
+    $this->renderable(function (AuthenticationException $e, $request) {
       return $this->unauthenticated($request, $e);
     });
 
-    $this->reportable(function (AuthorizationException $e) {
+    $this->renderable(function (AuthorizationException $e) {
       return $this->errorResponse('No posee permisos para ejecutar esta acción', 403);
     });
 
-    $this->reportable(function (NotFoundHttpException $e) {
+    $this->renderable(function (NotFoundHttpException $e) {
       return $this->errorResponse('No se encontró la URL especificada', 404);
     });
 
-    $this->reportable(function (MethodNotAllowedHttpException $e) {
+    $this->renderable(function (MethodNotAllowedHttpException $e) {
       return $this->errorResponse('El método especificado en la petición no es válido', 405);
     });
 
-    $this->reportable(function (HttpException $e) {
+    $this->renderable(function (HttpException $e) {
       return $this->errorResponse($e->getMessage(), $e->getStatusCode());
     });
 
 
-    $this->reportable(function (QueryException $e) {
+    $this->renderable(function (QueryException $e) {
       $codigo = $e->errorInfo[1];
 
       if ($codigo == 1451) {
         return $this->errorResponse('No se puede eliminar de forma permamente el recurso porque está relacionado con algún otro.', 409);
       }
+    });
+
+    $this->renderable(function (Throwable $e) {
+      return $this->errorResponse($e->getMessage(), 500);
     });
   }
 
